@@ -80,8 +80,7 @@ def readTramNetwork(tramfile=TRAM_FILE):
 
 
 def specialize_stops_to_lines(network):
-    # TODO: write this function as specified
-    return network
+    return network.linedict
 
 
 def specialized_transition_time(spec_network, a, b, changetime=10):
