@@ -73,9 +73,10 @@ class TramNetwork(WeightedGraph):
         return min_pos["lat"], min_pos["lon"], max_pos["lat"], max_pos["lon"]
 
 
-def readTramNetwork():
-    # TODO: your own trams.readTramNetwork()
-    pass
+def readTramNetwork(tramfile=TRAM_FILE):
+    with open(tramfile) as trams:
+        tramdict = json.loads(trams.read())
+    return TramNetwork(tramdict)
 
 
 def specialize_stops_to_lines(network):
