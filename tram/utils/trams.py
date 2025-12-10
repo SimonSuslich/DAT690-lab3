@@ -3,7 +3,7 @@ import json
 # imports added in Lab 3 version
 import math
 import os
-from .graphs import WeightedGraph
+from .graphs import WeightedGraph, dijkstra
 from django.conf import settings
 
 TRAM_FILE = os.path.join(settings.BASE_DIR, 'static/tramnetwork.json')
@@ -47,7 +47,7 @@ class TramNetwork(WeightedGraph):
         return td.lines_via_stop(self.linedict, stop)
 
     def lines_stop_list(self, line):
-        return linedict[line]
+        return self.linedict[line]
     
     def all_stops_list(self):
         return list(stop for stop in self.stopdict)
@@ -80,15 +80,57 @@ def readTramNetwork(tramfile=TRAM_FILE):
 
 
 def specialize_stops_to_lines(network):
-    return network.linedict
+    spec_network = WeightedGraph()
+    spec_network.timedict = network.timedict
 
+    for line in network.all_lines_list():
+        i = 0
+        stops = network.lines_stop_list(line)
+        while i < len(stops)-1:
+            stop1 = (stops[i], line)
+            stop2 = (stops[i+1], line)
+            spec_network.add_edge(stop1, stop2)
+            i+=1
+    for stop1 in spec_network.vertices():
+        for stop2 in spec_network.vertices():
+            if stop1[0] == stop2[0] and stop1 != stop2:
+                spec_network.add_edge(stop1, stop2)
+    return spec_network
 
 def specialized_transition_time(spec_network, a, b, changetime=10):
-    # TODO: write this function as specified
-    return changetime
+
+    for edge in spec_network.edges():
+        stop1 = edge[0]
+        stop2 = edge[1]
+    
+        if stop1[0] == stop2[0]:
+            spec_network.set_weight(stop1, stop2, changetime)
+        else:
+            if stop1[0] in spec_network.timedict:
+                if stop2 in spec_network.timedict[stop1[0]]:                       
+                    time = spec_network.timedict[stop1[0]][stop2[0]]
+                    spec_network.set_weight(stop1, stop2, time)
+            else:
+                time = spec_network.timedict[stop2[0]][stop1[0]]
+                spec_network.set_weight(stop1, stop2, time)
+    
+    path = dijkstra(spec_network, a, spec_network.get_weight)[b]
+
+    time = 0
+    i =0
+    while i < len(path)-1:
+        stop1 = path[i]
+        stop2 = path[i+1]
+        time += spec_network.get_weight(stop1, stop2)
+        i+=1
+    return time
 
 
 def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
     # TODO: write this function as specified
     return changedistance
+
+G = readTramNetwork()
+spec_network = specialize_stops_to_lines(G)
+print(specialized_transition_time(spec_network, ('Önskevädersgatan', '10'), ('Storås', '4')))
 
