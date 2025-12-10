@@ -109,31 +109,16 @@ def specialize_stops_to_lines(network):
     return spec_network
 
 def specialized_transition_time(spec_network, a, b, changetime=10):
-
-    for edge in spec_network.edges():
-        stop1 = edge[0]
-        stop2 = edge[1]
-    
-        if stop1[0] == stop2[0]:
-            spec_network[stop1][stop2]["time"] = changetime
-
-    
-    path = dijkstra(spec_network, a, spec_network.get_time)[b]
-
-    return path
-
+    if a[0] == b[0]:
+        return changetime
+    else:
+        return spec_network[a][b]["time"]
 
 def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
-    for edge in spec_network.edges():
-        stop1 = edge[0]
-        stop2 = edge[1]
-    
-        if stop1[0] == stop2[0]:
-            spec_network[stop1][stop2]["distance"] = changedistance
-    
-    path = dijkstra(spec_network, a, spec_network.get_distance)[b]
-
-    return path
+    if a[0] == b[0]:
+        return changedistance
+    else:
+        return spec_network[a][b]["distance"]
 
 # G = readTramNetwork()
 # sn = specialize_stops_to_lines(G)

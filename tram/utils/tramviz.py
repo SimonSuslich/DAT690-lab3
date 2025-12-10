@@ -14,27 +14,28 @@ def show_shortest(dep, dest):
     dep_line = network.lines_via_stop(dep)[0]
     dest_line = network.lines_via_stop(dest)[0]
 
-    quickest = specialized_transition_time(spec_network, (dep, dep_line), (dest, dest_line))
-    shortest = specialized_geo_distance(spec_network, (dep, dep_line), (dest, dest_line))
+    quickest = dijkstra(spec_network, (dep, dep_line), 
+                        cost=lambda u, v: specialized_transition_time(spec_network, u, v))[(dest, dest_line)]
+    shortest = dijkstra(spec_network, (dep, dep_line),
+                        cost=lambda u, v: specialized_geo_distance(spec_network, u, v))[(dest, dest_line)]
+
     for dep_line in network.lines_via_stop(dep):
         for dest_line in network.lines_via_stop(dest):
-            if len(specialized_transition_time(spec_network, (dep, dep_line), (dest, dest_line))) < len(quickest):
-                quickest = specialized_transition_time(spec_network, (dep, dep_line), (dest, dest_line))
-            if len(specialized_geo_distance(spec_network, (dep, dep_line), (dest, dest_line))) < len(shortest):
-                shortest = specialized_geo_distance(spec_network, (dep, dep_line), (dest, dest_line))
-
-    # TODO: replace this mock-up with actual computation using dijkstra.
-    # First you need to calculate the shortest and quickest paths,
-    # by using appropriate cost functions in dijkstra().
-    # Then you just need to use the lists of stops returned by dijkstra()
-    # You sould also tell which tram lines you use and where changes happen.
+            test_quickest = dijkstra(spec_network, (dep, dep_line), 
+                        cost=lambda u, v: specialized_transition_time(spec_network, u, v))[(dest, dest_line)]
+            test_shortest = dijkstra(spec_network, (dep, dep_line),
+                        cost=lambda u, v: specialized_geo_distance(spec_network, u, v))[(dest, dest_line)]
+            if len(test_quickest) < len(quickest):
+                quickest = test_quickest
+            if len(test_shortest) < len(shortest):
+                shortest = test_shortest
 
     time = 0
     i = 0
     while i < len(quickest)-1:
         stop1 = quickest[i]
         stop2 = quickest[i+1]
-        time += spec_network.get_time(stop1, stop2)
+        time += specialized_transition_time(spec_network, stop1, stop2)
         i+=1
 
     distance = 0
@@ -42,7 +43,7 @@ def show_shortest(dep, dest):
     while i < len(shortest)-1:
         stop1 = shortest[i]
         stop2 = shortest[i+1]
-        distance += spec_network.get_distance(stop1, stop2)
+        distance += specialized_geo_distance(spec_network, stop1, stop2)
         i+=1
 
     strs_quickest = [" - ".join(stop) for stop in quickest]

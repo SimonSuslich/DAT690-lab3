@@ -40,18 +40,6 @@ class WeightedGraph(nx.Graph):
         except KeyError:
             return 1
 
-    def get_time(self, a, b):
-        try:
-            return self[a][b]["time"]
-        except KeyError:
-            return 1
-  
-    def get_distance(self, a, b):
-        try:
-            return self[a][b]["distance"]
-        except KeyError:
-            return 1
-
 def dijkstra(graph, source, cost=lambda u,v: 1):
     costs2attributes(graph, cost)
     paths = {
