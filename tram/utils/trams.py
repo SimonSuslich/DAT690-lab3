@@ -102,10 +102,9 @@ def specialized_transition_time(spec_network, a, b, changetime=10):
         if stop1[0] == stop2[0]:
             spec_network.set_weight(stop1, stop2, changetime)
         else:
-            if stop1[0] in spec_network.timedict:
-                if stop2 in spec_network.timedict[stop1[0]]:                       
-                    time = spec_network.timedict[stop1[0]][stop2[0]]
-                    spec_network.set_weight(stop1, stop2, time)
+            if stop1[0] in spec_network.timedict and stop2[0] in spec_network.timedict[stop1[0]]:                       
+                time = spec_network.timedict[stop1[0]][stop2[0]]
+                spec_network.set_weight(stop1, stop2, time)
             else:
                 time = spec_network.timedict[stop2[0]][stop1[0]]
                 spec_network.set_weight(stop1, stop2, time)
@@ -145,3 +144,7 @@ def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
         i+=1
     return distance
 
+# G = readTramNetwork()
+# sn = specialize_stops_to_lines(G)
+# print(specialized_transition_time(sn, ("Chalmers", "8"), ("Angered Centrum", "8")))
+# print(specialized_geo_distance(sn, ("Chalmers", "8"), ("Angered Centrum", "8")))
