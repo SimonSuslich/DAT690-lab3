@@ -51,7 +51,7 @@ def show_shortest(dep, dest):
     
 
     timepath = f'Quickest: {', '.join(strs_quickest)}, {time} minutes'
-    geopath = f'Shortest: {', '.join(strs_shortest)}, {distance} km'
+    geopath = f'Shortest: {', '.join(strs_shortest)}, {round(distance,2)} km'
 
     shortest = [info.split("-")[0].strip() for info in strs_shortest]
     quickest = [info.split("-")[0].strip() for info in strs_quickest]
