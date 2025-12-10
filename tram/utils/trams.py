@@ -6,16 +6,11 @@ import os
 from .graphs import WeightedGraph, dijkstra
 from django.conf import settings
 
+import sys
+sys.path.append('../lab1/')
+import tramdata as td
+
 TRAM_FILE = os.path.join(settings.BASE_DIR, 'static/tramnetwork.json')
-
-
-# TODO: use your Lab 2 class definition, but add one method
-# class TramNetwork(WeightedGraph):    
-    # def extreme_positions(self):
-        # stops = self._stopdict.values()
-        # minlat = min([s._position[0] for s in stops])
-        # etc
-        # return minlat, minlon, maxlat, maxlon
 
 class TramNetwork(WeightedGraph):
     def __init__(self, tramdict):
@@ -82,6 +77,7 @@ def readTramNetwork(tramfile=TRAM_FILE):
 def specialize_stops_to_lines(network):
     spec_network = WeightedGraph()
     spec_network.timedict = network.timedict
+    spec_network.distance_between_stops = network.distance_between_stops
 
     for line in network.all_lines_list():
         i = 0
@@ -127,10 +123,25 @@ def specialized_transition_time(spec_network, a, b, changetime=10):
 
 
 def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
-    # TODO: write this function as specified
-    return changedistance
+    for edge in spec_network.edges():
+        stop1 = edge[0]
+        stop2 = edge[1]
+    
+        if stop1[0] == stop2[0]:
+            spec_network.set_weight(stop1, stop2, changedistance)
+        else:                    
+            distance = spec_network.distance_between_stops(stop1[0], stop2[0])
+            spec_network.set_weight(stop1, stop2, distance)
 
-G = readTramNetwork()
-spec_network = specialize_stops_to_lines(G)
-print(specialized_transition_time(spec_network, ('Önskevädersgatan', '10'), ('Storås', '4')))
+    
+    path = dijkstra(spec_network, a, spec_network.get_weight)[b]
+
+    distance = 0
+    i = 0
+    while i < len(path)-1:
+        stop1 = path[i]
+        stop2 = path[i+1]
+        distance += spec_network.get_weight(stop1, stop2)
+        i+=1
+    return distance
 
