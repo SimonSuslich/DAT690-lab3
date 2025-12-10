@@ -86,11 +86,26 @@ def specialize_stops_to_lines(network):
             stop1 = (stops[i], line)
             stop2 = (stops[i+1], line)
             spec_network.add_edge(stop1, stop2)
+
+            if stop1[0] in spec_network.timedict and stop2[0] in spec_network.timedict[stop1[0]]:                       
+                time = spec_network.timedict[stop1[0]][stop2[0]]
+                spec_network[stop1][stop2]["time"] = time
+            else:
+                time = spec_network.timedict[stop2[0]][stop1[0]]
+                spec_network[stop1][stop2]["time"] = time
+            
+            distance = spec_network.distance_between_stops(stop1[0], stop2[0])
+            spec_network[stop1][stop2]["distance"] = distance
+
             i+=1
     for stop1 in spec_network.vertices():
         for stop2 in spec_network.vertices():
             if stop1[0] == stop2[0] and stop1 != stop2:
                 spec_network.add_edge(stop1, stop2)
+                spec_network[stop1][stop2]["time"] = 1
+                spec_network[stop1][stop2]["distance"] = 1
+
+
     return spec_network
 
 def specialized_transition_time(spec_network, a, b, changetime=10):
@@ -100,25 +115,12 @@ def specialized_transition_time(spec_network, a, b, changetime=10):
         stop2 = edge[1]
     
         if stop1[0] == stop2[0]:
-            spec_network.set_weight(stop1, stop2, changetime)
-        else:
-            if stop1[0] in spec_network.timedict and stop2[0] in spec_network.timedict[stop1[0]]:                       
-                time = spec_network.timedict[stop1[0]][stop2[0]]
-                spec_network.set_weight(stop1, stop2, time)
-            else:
-                time = spec_network.timedict[stop2[0]][stop1[0]]
-                spec_network.set_weight(stop1, stop2, time)
-    
-    path = dijkstra(spec_network, a, spec_network.get_weight)[b]
+            spec_network[stop1][stop2]["time"] = changetime
 
-    time = 0
-    i =0
-    while i < len(path)-1:
-        stop1 = path[i]
-        stop2 = path[i+1]
-        time += spec_network.get_weight(stop1, stop2)
-        i+=1
-    return time
+    
+    path = dijkstra(spec_network, a, spec_network.get_time)[b]
+
+    return path
 
 
 def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
@@ -127,22 +129,11 @@ def specialized_geo_distance(spec_network, a, b, changedistance=0.02):
         stop2 = edge[1]
     
         if stop1[0] == stop2[0]:
-            spec_network.set_weight(stop1, stop2, changedistance)
-        else:                    
-            distance = spec_network.distance_between_stops(stop1[0], stop2[0])
-            spec_network.set_weight(stop1, stop2, distance)
-
+            spec_network[stop1][stop2]["distance"] = changedistance
     
-    path = dijkstra(spec_network, a, spec_network.get_weight)[b]
+    path = dijkstra(spec_network, a, spec_network.get_distance)[b]
 
-    distance = 0
-    i = 0
-    while i < len(path)-1:
-        stop1 = path[i]
-        stop2 = path[i+1]
-        distance += spec_network.get_weight(stop1, stop2)
-        i+=1
-    return distance
+    return path
 
 # G = readTramNetwork()
 # sn = specialize_stops_to_lines(G)

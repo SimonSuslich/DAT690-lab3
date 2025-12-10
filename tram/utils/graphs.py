@@ -27,8 +27,6 @@ class WeightedGraph(nx.Graph):
     def vertices(self):
         return self.nodes()
 
-
-
     def add_edge(self, a, b):
         super().add_edge(a, b)
         self.set_weight(a, b, 1)
@@ -39,6 +37,18 @@ class WeightedGraph(nx.Graph):
     def get_weight(self, a, b):
         try:
             return self[a][b]['weight']
+        except KeyError:
+            return 1
+
+    def get_time(self, a, b):
+        try:
+            return self[a][b]["time"]
+        except KeyError:
+            return 1
+  
+    def get_distance(self, a, b):
+        try:
+            return self[a][b]["distance"]
         except KeyError:
             return 1
 

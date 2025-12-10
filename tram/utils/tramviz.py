@@ -1,6 +1,6 @@
 # visualization of shortest path in Lab 3, modified to work with Django
 
-from .trams import readTramNetwork
+from .trams import readTramNetwork, specialize_stops_to_lines, specialized_geo_distance, specialized_transition_time
 from .graphs import dijkstra
 from .color_tram_svg import color_svg_network
 import os
@@ -9,6 +9,19 @@ from django.core.files.storage import default_storage
 
 def show_shortest(dep, dest):
     network = readTramNetwork()
+    spec_network = specialize_stops_to_lines(network)
+
+    dep_line = network.lines_via_stop(dep)[0]
+    dest_line = network.lines_via_stop(dest)[0]
+
+    quickest = specialized_transition_time(spec_network, (dep, dep_line), (dest, dest_line))
+    shortest = specialized_geo_distance(spec_network, (dep, dep_line), (dest, dest_line))
+    for dep_line in network.lines_via_stop(dep):
+        for dest_line in network.lines_via_stop(dest):
+            if len(specialized_transition_time(spec_network, (dep, dep_line), (dest, dest_line))) < len(quickest):
+                quickest = specialized_transition_time(spec_network, (dep, dep_line), (dest, dest_line))
+            if len(specialized_geo_distance(spec_network, (dep, dep_line), (dest, dest_line))) < len(shortest):
+                shortest = specialized_geo_distance(spec_network, (dep, dep_line), (dest, dest_line))
 
     # TODO: replace this mock-up with actual computation using dijkstra.
     # First you need to calculate the shortest and quickest paths,
@@ -16,15 +29,39 @@ def show_shortest(dep, dest):
     # Then you just need to use the lists of stops returned by dijkstra()
     # You sould also tell which tram lines you use and where changes happen.
 
-    quickest = [dep, 'Chalmers', dest]
-    shortest = [dep, 'Chalmers', dest] 
+    time = 0
+    i = 0
+    while i < len(quickest)-1:
+        stop1 = quickest[i]
+        stop2 = quickest[i+1]
+        time += spec_network.get_time(stop1, stop2)
+        i+=1
+
+    distance = 0
+    i = 0
+    while i < len(shortest)-1:
+        stop1 = shortest[i]
+        stop2 = shortest[i+1]
+        distance += spec_network.get_distance(stop1, stop2)
+        i+=1
+
+    strs_quickest = [" - ".join(stop) for stop in quickest]
+    strs_shortest = [" - ".join(stop) for stop in shortest]
     
-    timepath = 'Quickest: ' + ', '.join(quickest) + ', 5 minutes'
-    geopath = 'Shortest: ' + ', '.join(shortest) + ', 100 km'
+
+    timepath = f'Quickest: {', '.join(strs_quickest)}, {time} minutes'
+    geopath = f'Shortest: {', '.join(strs_shortest)}, {distance} km'
+
+    shortest = [info.split("-")[0].strip() for info in strs_shortest]
+    quickest = [info.split("-")[0].strip() for info in strs_quickest]
 
     def colors(v):
-        if v in shortest:
-            return 'cyan'
+        if v in shortest and v in quickest:
+            return "cyan"
+        elif v in shortest:
+            return 'green'
+        elif v in quickest:
+            return 'orange'
         else:
             return 'white'
 
