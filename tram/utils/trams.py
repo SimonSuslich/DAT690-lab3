@@ -10,7 +10,7 @@ import sys
 sys.path.append('../lab1/')
 import tramdata as td
 
-TRAM_FILE = os.path.join(settings.BASE_DIR, 'static/tramnetwork.json')
+TRAM_FILE = os.path.join('static/tramnetwork.json')
 
 class TramNetwork(WeightedGraph):
     def __init__(self, tramdict):
@@ -30,7 +30,7 @@ class TramNetwork(WeightedGraph):
                 self.set_weight(stop1, stop2, time)
 
     def stop_geo_pos(self, stop):
-        return self.stopdict[stop]        
+        return float(self.stopdict[stop]['lat']), float(self.stopdict[stop]['lon'])         
 
     def time_between_stops(self, stop1, stop2):
         return td.time_between_stops(self.linedict, self.timedict, stop1, stop2)
@@ -65,7 +65,7 @@ class TramNetwork(WeightedGraph):
                     min_pos[attr] = float(val)
                 if float(val) > max_pos[attr]:
                     max_pos[attr] = float(val)
-        return min_pos["lat"], min_pos["lon"], max_pos["lat"], max_pos["lon"]
+        return (min_pos["lat"]), min_pos["lon"], max_pos["lat"], max_pos["lon"]
 
 
 def readTramNetwork(tramfile=TRAM_FILE):

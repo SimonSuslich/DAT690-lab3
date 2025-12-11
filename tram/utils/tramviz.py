@@ -73,7 +73,7 @@ def show_shortest(dep, dest):
 
     # this part should be left as it is:
     # change the SVG image with your shortest path colors
-    infile = os.path.join(settings.BASE_DIR, 'tram/templates/tram/images/gbg_tramnet.svg')
+    infile = os.path.join(settings.BASE_DIR, 'tram/templates/tram/images/my_gbg_tramnet.svg')
     outfile = os.path.join(settings.BASE_DIR, f'tram/templates/tram/images/generated/{outfile_unique_name}')
     color_svg_network(infile, outfile, colormap=colors)
     # return the path texts to be shown in the web page
